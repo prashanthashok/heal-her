@@ -100,6 +100,26 @@ export default function HomePage() {
         </h1>
       </div>
 
+      {/* ── Program progress bar ────────────────────────────────────── */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-medium text-charcoal/45">90-Day Program</p>
+          <p className="text-xs font-semibold text-charcoal/60">
+            Day {data.programDay}
+            <span className="font-normal text-charcoal/30"> of 90</span>
+          </p>
+        </div>
+        <div className="h-2 w-full bg-cream-dark rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{
+              width: `${Math.min(100, (data.programDay / 90) * 100)}%`,
+              background: 'linear-gradient(90deg, #C17A5A 0%, #C9A84C 60%, #7D9B76 100%)',
+            }}
+          />
+        </div>
+      </div>
+
       {/* ── Phase cards (2-col) ──────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-3">
         {/* Program phase */}

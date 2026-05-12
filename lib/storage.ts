@@ -2,7 +2,13 @@ import type { UserProfile } from './types';
 
 export const STORAGE_KEYS = {
   ONBOARDING_COMPLETE: 'onboardingComplete',
-  USER_PROFILE: 'userProfile',
+  USER_PROFILE:        'userProfile',
+  CHECKLIST:           'checklistData',
+  TRACKER_LOG:         'trackerLog',
+  MEAL_PLAN:           'mealPlan',
+  HERB_CHECKS:         'herbChecks',
+  LEARN_READ:          'learnRead',
+  JOURNAL_ENTRIES:     'journalEntries',
 } as const;
 
 export function saveUserProfile(profile: UserProfile): void {
@@ -27,4 +33,9 @@ export function isOnboardingComplete(): boolean {
 
 export function setOnboardingComplete(): void {
   localStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETE, 'true');
+}
+
+/** Wipes every app key from localStorage and resets to a clean state. */
+export function clearAllData(): void {
+  Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
 }

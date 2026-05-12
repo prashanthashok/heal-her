@@ -23,7 +23,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
       <main className="flex-1 md:ml-64 pb-20 md:pb-0">
         <div className="max-w-3xl mx-auto px-4 py-6 md:px-8">
-          {children}
+          <div key={pathname} className="animate-page-in">
+            {children}
+          </div>
         </div>
       </main>
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-20">

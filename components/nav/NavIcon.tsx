@@ -7,9 +7,10 @@ import {
   Leaf,
   BookOpen,
   PenLine,
+  Settings,
 } from 'lucide-react';
 
-const icons = { Home, CalendarDays, Utensils, Leaf, BookOpen, PenLine };
+const icons = { Home, CalendarDays, Utensils, Leaf, BookOpen, PenLine, Settings };
 
 type IconName = keyof typeof icons;
 
