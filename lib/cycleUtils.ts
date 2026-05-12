@@ -27,15 +27,15 @@ export const CYCLE_PHASE_META: Record<CyclePhase, {
     label: 'Power Phase',
     days: 'Days 1–10',
     color: 'sage',
-    fastingWindow: '13–15 hrs',
+    fastingWindow: '16–17 hrs',
     description: 'Estrogen is rising and your body welcomes longer fasting windows. Focus on ketobiotic, cleansing foods.',
   },
   manifestation: {
     label: 'Manifestation Phase',
     days: 'Days 11–15',
     color: 'gold',
-    fastingWindow: '15–17 hrs',
-    description: 'You\'re at peak energy and clarity. This is your best window for deeper fasting and intention-setting.',
+    fastingWindow: '13–15 hrs',
+    description: 'You\'re at peak energy and clarity. This is your best window for focused fasting and intention-setting.',
   },
   nurture: {
     label: 'Nurture Phase',
