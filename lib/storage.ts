@@ -1,0 +1,30 @@
+import type { UserProfile } from './types';
+
+export const STORAGE_KEYS = {
+  ONBOARDING_COMPLETE: 'onboardingComplete',
+  USER_PROFILE: 'userProfile',
+} as const;
+
+export function saveUserProfile(profile: UserProfile): void {
+  localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profile));
+}
+
+export function getUserProfile(): UserProfile | null {
+  if (typeof window === 'undefined') return null;
+  const raw = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as UserProfile;
+  } catch {
+    return null;
+  }
+}
+
+export function isOnboardingComplete(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETE) === 'true';
+}
+
+export function setOnboardingComplete(): void {
+  localStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETE, 'true');
+}
