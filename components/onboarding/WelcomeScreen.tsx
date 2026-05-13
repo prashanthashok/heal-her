@@ -1,13 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { UserProfile } from '@/lib/types';
 import { DOSHA_META } from '@/lib/cycleUtils';
 import { getCycleDay, getCyclePhase, CYCLE_PHASE_META } from '@/lib/cycleUtils';
 import { useAuth } from '@/context/AuthContext';
-import { pushToFirestore } from '@/lib/sync';
-import { setCurrentUid } from '@/lib/uid';
 
 interface WelcomeScreenProps {
   profile: UserProfile;
@@ -16,8 +13,6 @@ interface WelcomeScreenProps {
 export function WelcomeScreen({ profile }: WelcomeScreenProps) {
   const router = useRouter();
   const { user, signIn } = useAuth();
-  const [signingIn, setSigningIn] = useState(false);
-  const [error, setError] = useState('');
 
   const dosha = DOSHA_META[profile.dosha];
   const cycleDay = getCycleDay(profile.lastPeriodDate);
@@ -30,24 +25,14 @@ export function WelcomeScreen({ profile }: WelcomeScreenProps) {
     nurture: 'bg-terracotta/10 text-terracotta border-terracotta/20',
   };
 
-  async function handleBegin() {
+  function handleBegin() {
     if (user) {
-      // Already signed in — just go home (Firestore write was fired on profile save)
+      // Already signed in — AuthContext auto-migrated local data; go home
       router.replace('/');
-      return;
-    }
-
-    // Not signed in yet — sign in then push local data to Firestore
-    setSigningIn(true);
-    setError('');
-    try {
-      const u = await signIn();
-      setCurrentUid(u.uid);
-      await pushToFirestore(u.uid);
-      router.replace('/');
-    } catch {
-      setError('Sign in failed. Please try again.');
-      setSigningIn(false);
+    } else {
+      // Redirect to Google; on return, onboarding page detects isOnboardingComplete()
+      // and redirects to home; AuthContext auto-pushes local data to Firestore
+      signIn();
     }
   }
 
@@ -118,14 +103,11 @@ export function WelcomeScreen({ profile }: WelcomeScreenProps) {
       )}
 
       {/* CTA */}
-      {error && <p className="text-xs text-red-500">{error}</p>}
-
       <button
         onClick={handleBegin}
-        disabled={signingIn}
-        className="w-full btn-primary py-4 text-base rounded-2xl shadow-sm disabled:opacity-60"
+        className="w-full btn-primary py-4 text-base rounded-2xl shadow-sm"
       >
-        {signingIn ? 'Signing in…' : user ? 'Begin my 90-day journey →' : 'Sign in with Google to begin →'}
+        {user ? 'Begin my 90-day journey →' : 'Sign in with Google to begin →'}
       </button>
 
       {!user && (
