@@ -32,29 +32,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [redirectError, setRedirectError] = useState('');
 
   useEffect(() => {
-    // Consume any pending redirect result and surface errors to the login page
-    getSignInRedirectResult().catch((err: { code?: string }) => {
-      if (err?.code !== 'auth/missing-initial-state') {
-        setRedirectError('Sign in failed. Please try again.');
-      }
-    });
+    let unsubscribe: (() => void) | undefined;
 
-    return onAuthChange(async (u) => {
-      setCurrentUid(u?.uid ?? null);
-      if (u) {
-        const hasCloudData = await hydrateFromFirestore(u.uid);
-        if (!hasCloudData) {
-          // User has no cloud data — if they completed onboarding locally first,
-          // push that data up now so it's available on all devices.
-          const hasLocalData = !!localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-          if (hasLocalData) {
-            await pushToFirestore(u.uid);
-          }
+    async function init() {
+      // IMPORTANT: await the redirect result BEFORE subscribing to onAuthStateChanged.
+      // If we subscribe first, Firebase fires onAuthStateChanged(null) while still
+      // processing the redirect — loading flips false, AppShell sees no user, and
+      // redirects back to /login, which breaks the redirect state (infinite loop).
+      try {
+        await getSignInRedirectResult();
+      } catch (err: unknown) {
+        const code = (err as { code?: string })?.code;
+        if (code && code !== 'auth/missing-initial-state') {
+          setRedirectError('Sign in failed. Please try again.');
         }
       }
-      setUser(u);
-      setLoading(false);
-    });
+
+      // By the time we subscribe here, Firebase has finished processing the
+      // redirect and onAuthStateChanged delivers the correct signed-in state.
+      unsubscribe = onAuthChange(async (u) => {
+        setCurrentUid(u?.uid ?? null);
+        if (u) {
+          const hasCloudData = await hydrateFromFirestore(u.uid);
+          if (!hasCloudData) {
+            // Completed onboarding locally before signing in — auto-upload
+            const hasLocalData = !!localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
+            if (hasLocalData) await pushToFirestore(u.uid);
+          }
+        }
+        setUser(u);
+        setLoading(false);
+      });
+    }
+
+    init();
+    return () => unsubscribe?.();
   }, []);
 
   return (
