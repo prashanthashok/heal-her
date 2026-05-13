@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { LearnArticle } from '@/lib/learn';
 
 const CATEGORY_CHIP: Record<string, string> = {
@@ -68,7 +69,7 @@ export function ArticleView({ article, onClose }: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
@@ -128,6 +129,7 @@ export function ArticleView({ article, onClose }: Props) {
           <div className="h-4" />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

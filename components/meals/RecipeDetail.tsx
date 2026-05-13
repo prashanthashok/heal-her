@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { Recipe } from '@/lib/meals';
 import { CYCLE_PHASE_META } from '@/lib/cycleUtils';
 
@@ -31,7 +32,7 @@ export function RecipeDetail({ recipe, onClose }: Props) {
 
   const phaseMeta = CYCLE_PHASE_META[recipe.phase];
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop — no backdrop-blur: Safari creates a compositing layer that hides siblings */}
       <div
@@ -133,6 +134,7 @@ export function RecipeDetail({ recipe, onClose }: Props) {
           <div className="h-4" /> {/* bottom breathing room */}
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
