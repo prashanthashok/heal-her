@@ -1,7 +1,13 @@
+'use client';
+
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { UserProfile } from '@/lib/types';
 import { DOSHA_META } from '@/lib/cycleUtils';
 import { getCycleDay, getCyclePhase, CYCLE_PHASE_META } from '@/lib/cycleUtils';
+import { useAuth } from '@/context/AuthContext';
+import { pushToFirestore } from '@/lib/sync';
+import { setCurrentUid } from '@/lib/uid';
 
 interface WelcomeScreenProps {
   profile: UserProfile;
@@ -9,6 +15,10 @@ interface WelcomeScreenProps {
 
 export function WelcomeScreen({ profile }: WelcomeScreenProps) {
   const router = useRouter();
+  const { user, signIn } = useAuth();
+  const [signingIn, setSigningIn] = useState(false);
+  const [error, setError] = useState('');
+
   const dosha = DOSHA_META[profile.dosha];
   const cycleDay = getCycleDay(profile.lastPeriodDate);
   const phase = getCyclePhase(cycleDay);
@@ -19,6 +29,27 @@ export function WelcomeScreen({ profile }: WelcomeScreenProps) {
     manifestation: 'bg-gold/10 text-gold-dark border-gold/20',
     nurture: 'bg-terracotta/10 text-terracotta border-terracotta/20',
   };
+
+  async function handleBegin() {
+    if (user) {
+      // Already signed in — just go home (Firestore write was fired on profile save)
+      router.replace('/');
+      return;
+    }
+
+    // Not signed in yet — sign in then push local data to Firestore
+    setSigningIn(true);
+    setError('');
+    try {
+      const u = await signIn();
+      setCurrentUid(u.uid);
+      await pushToFirestore(u.uid);
+      router.replace('/');
+    } catch {
+      setError('Sign in failed. Please try again.');
+      setSigningIn(false);
+    }
+  }
 
   return (
     <div className="space-y-8 animate-fade-in-up text-center">
@@ -87,16 +118,23 @@ export function WelcomeScreen({ profile }: WelcomeScreenProps) {
       )}
 
       {/* CTA */}
+      {error && <p className="text-xs text-red-500">{error}</p>}
+
       <button
-        onClick={() => router.replace('/')}
-        className="w-full btn-primary py-4 text-base rounded-2xl shadow-sm"
+        onClick={handleBegin}
+        disabled={signingIn}
+        className="w-full btn-primary py-4 text-base rounded-2xl shadow-sm disabled:opacity-60"
       >
-        Begin my 90-day journey →
+        {signingIn ? 'Signing in…' : user ? 'Begin my 90-day journey →' : 'Sign in with Google to begin →'}
       </button>
 
-      <p className="text-xs text-charcoal/30 pb-4">
-        All data is stored privately on your device only.
-      </p>
+      {!user && (
+        <p className="text-xs text-charcoal/40 -mt-4 leading-relaxed">
+          Your data syncs across any device you sign into.
+        </p>
+      )}
+
+      <div className="pb-4" />
     </div>
   );
 }
