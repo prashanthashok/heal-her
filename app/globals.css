@@ -52,13 +52,15 @@ body {
   animation: fadeInUp 0.35s ease-out both;
 }
 
-/* Page-level entrance transition */
+/* Page-level entrance transition — opacity only.
+   transform on this element would create a containing block for position:fixed
+   descendants (CSS spec), breaking sheet/modal positioning on all browsers. */
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 .animate-page-in {
-  animation: pageIn 0.22s ease-out both;
+  animation: pageIn 0.2s ease-out both;
 }
 
 /* Spin utility for loading states */
