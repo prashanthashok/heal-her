@@ -74,12 +74,12 @@ export function ArticleView({ article, onClose }: Props) {
       className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-charcoal/40 backdrop-blur-sm" onClick={onClose} />
+      {/* Backdrop — no backdrop-blur: Safari creates a compositing layer that hides siblings */}
+      <div className="absolute inset-0 bg-charcoal/50" onClick={onClose} />
 
-      {/* Sheet */}
-      <div className="relative w-full md:max-w-2xl md:mx-4 bg-cream rounded-t-3xl md:rounded-3xl
-                      max-h-[92vh] flex flex-col shadow-2xl animate-slide-up">
+      {/* Sheet — z-10 ensures it sits above the backdrop; 88vh keeps it inside Safari's visible area */}
+      <div className="relative z-10 w-full md:max-w-2xl md:mx-4 bg-cream rounded-t-3xl md:rounded-3xl
+                      max-h-[88vh] flex flex-col shadow-2xl animate-slide-up">
 
         {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-3 pb-1 md:hidden flex-shrink-0">

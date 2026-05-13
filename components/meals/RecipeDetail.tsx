@@ -33,15 +33,15 @@ export function RecipeDetail({ recipe, onClose }: Props) {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — no backdrop-blur: Safari creates a compositing layer that hides siblings */}
       <div
-        className="fixed inset-0 bg-charcoal/30 z-40 backdrop-blur-sm"
+        className="fixed inset-0 bg-charcoal/50 z-40"
         onClick={onClose}
         aria-hidden
       />
 
       {/* Sheet */}
-      <div className="fixed inset-x-0 bottom-0 z-50 max-h-[92vh] flex flex-col
+      <div className="fixed inset-x-0 bottom-0 z-50 max-h-[88vh] flex flex-col
                       bg-cream rounded-t-3xl shadow-2xl overflow-hidden animate-slide-up
                       md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2
                       md:w-full md:max-w-xl md:rounded-3xl md:max-h-[85vh]">
