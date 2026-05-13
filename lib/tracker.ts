@@ -1,3 +1,6 @@
+import { getCurrentUid } from './uid';
+import { fsSaveTrackerLog } from './firestore';
+
 export type BleedingLevel = 'none' | 'spotting' | 'light' | 'moderate' | 'heavy';
 export type EnergyLevel   = 1 | 2 | 3 | 4 | 5;
 export type MoodLevel     = 1 | 2 | 3 | 4 | 5;
@@ -50,8 +53,6 @@ export const MOOD_EMOJIS: Record<MoodLevel, string> = {
   1: '😢', 2: '😔', 3: '😐', 4: '😊', 5: '😄',
 };
 
-// ── Energy-level → calendar dot colour ──────────────────────────────────────
-
 export function energyDotColor(energy: EnergyLevel): string {
   if (energy <= 2) return 'bg-terracotta';
   if (energy === 3) return 'bg-gold';
@@ -72,6 +73,8 @@ export function loadLog(): TrackerEntry[] {
 
 export function saveLog(entries: TrackerEntry[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  const uid = getCurrentUid();
+  if (uid) fsSaveTrackerLog(uid, entries).catch(console.error);
 }
 
 export function getEntry(date: string): TrackerEntry | null {
@@ -85,12 +88,10 @@ export function upsertEntry(entry: TrackerEntry): void {
   saveLog(log);
 }
 
-/** Returns a map of date-string → entry for quick lookup */
 export function logMap(): Record<string, TrackerEntry> {
   return Object.fromEntries(loadLog().map(e => [e.date, e]));
 }
 
-/** Last N days of data for charts (null where no entry) */
 export function last30Days(): Array<{ date: string; label: string; energy: number | null; mood: number | null }> {
   const map = logMap();
   return Array.from({ length: 30 }, (_, i) => {

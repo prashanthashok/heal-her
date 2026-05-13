@@ -1,4 +1,7 @@
 import ARTICLES from '@/data/learn';
+import { getCurrentUid } from './uid';
+import { fsSaveLearnRead } from './firestore';
+
 export type { LearnArticle, LearnCategory } from '@/data/learn';
 export { ARTICLES };
 
@@ -17,10 +20,13 @@ export function loadReadArticles(): Set<string> {
 export function markArticleRead(id: string): Set<string> {
   const current = loadReadArticles();
   current.add(id);
+  const ids = Array.from(current);
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(current)));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
   } catch {
     // silent
   }
+  const uid = getCurrentUid();
+  if (uid) fsSaveLearnRead(uid, ids).catch(console.error);
   return current;
 }

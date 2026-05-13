@@ -8,6 +8,7 @@ import {
 import { DOSHA_META } from '@/lib/cycleUtils';
 import { PCOS_SYMPTOMS } from '@/lib/types';
 import type { UserProfile } from '@/lib/types';
+import { useAuth } from '@/context/AuthContext';
 
 function todayISO(): string {
   return new Date().toISOString().split('T')[0];
@@ -61,6 +62,7 @@ function ConfirmDialog({
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { user, logOut } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -99,6 +101,12 @@ export default function SettingsPage() {
   function handleClearAll() {
     clearAllData();
     router.replace('/onboarding');
+  }
+
+  async function handleSignOut() {
+    clearAllData();
+    await logOut();
+    router.replace('/login');
   }
 
   if (!mounted || !profile) {
@@ -241,6 +249,27 @@ export default function SettingsPage() {
         >
           {saved ? '✓ Changes saved' : 'Save changes'}
         </button>
+
+        {/* ── Account ──────────────────────────────────────────────── */}
+        {user && (
+          <section className="space-y-3">
+            <h2 className="section-title text-base">Account</h2>
+            <div className="card flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-charcoal truncate">{user.displayName}</p>
+                <p className="text-xs text-charcoal/45 truncate">{user.email}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="rounded-xl border border-cream-dark px-4 py-2 text-xs font-semibold
+                           text-charcoal/60 hover:text-charcoal hover:bg-cream transition-colors duration-150"
+              >
+                Sign out
+              </button>
+            </div>
+          </section>
+        )}
 
         {/* ── Danger zone ──────────────────────────────────────────── */}
         <section className="space-y-3">

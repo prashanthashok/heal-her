@@ -1,4 +1,6 @@
 import type { UserProfile } from './types';
+import { getCurrentUid } from './uid';
+import { fsSaveProfile } from './firestore';
 
 export const STORAGE_KEYS = {
   ONBOARDING_COMPLETE: 'onboardingComplete',
@@ -13,6 +15,8 @@ export const STORAGE_KEYS = {
 
 export function saveUserProfile(profile: UserProfile): void {
   localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profile));
+  const uid = getCurrentUid();
+  if (uid) fsSaveProfile(uid, profile).catch(console.error);
 }
 
 export function getUserProfile(): UserProfile | null {

@@ -1,5 +1,7 @@
 import RECIPES, { type Recipe, type MealType } from '@/data/meals';
 import type { CyclePhase } from './types';
+import { getCurrentUid } from './uid';
+import { fsSaveMealPlan } from './firestore';
 
 export type { Recipe, MealType };
 
@@ -34,7 +36,6 @@ export interface WeekPlan {
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export { DAY_LABELS };
 
-/** Shuffle helper (Fisher-Yates) */
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -58,7 +59,6 @@ export function generateWeekPlan(phase: CyclePhase): WeekPlan {
   return { phase, generatedAt: new Date().toISOString().split('T')[0], days };
 }
 
-/** Returns a random different recipe from the same phase + meal type */
 export function swapRecipe(currentId: string, phase: CyclePhase, mealType: MealType): string {
   const pool = recipesByPhaseAndType(phase, mealType).filter(r => r.id !== currentId);
   if (pool.length === 0) return currentId;
@@ -81,12 +81,10 @@ export function loadWeekPlan(): WeekPlan | null {
 
 export function saveWeekPlan(plan: WeekPlan): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(plan));
+  const uid = getCurrentUid();
+  if (uid) fsSaveMealPlan(uid, plan).catch(console.error);
 }
 
-/**
- * Returns a valid week plan for the given phase.
- * Regenerates if the stored plan is for a different phase.
- */
 export function getOrCreatePlan(phase: CyclePhase): WeekPlan {
   const stored = loadWeekPlan();
   if (stored && stored.phase === phase) return stored;

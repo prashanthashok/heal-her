@@ -1,16 +1,16 @@
 import HERBS, { type Herb, type HerbTiming } from '@/data/herbs';
 import type { ProgramPhase } from './types';
+import { getCurrentUid } from './uid';
+import { fsSaveHerbChecks } from './firestore';
 
 export type { Herb, HerbTiming };
 
 // ── Lookup / filter helpers ──────────────────────────────────────────────────
 
-/** Returns all herbs available in or before the given program month */
 export function activeHerbs(month: ProgramPhase): Herb[] {
   return HERBS.filter(h => h.month <= month);
 }
 
-/** Sort order for timing groups */
 const TIMING_RANK: Record<HerbTiming, number> = {
   'morning':           0,
   'morning & with meals': 1,
@@ -73,6 +73,8 @@ export function saveCheckedHerbs(ids: Set<string>): void {
     const data: Record<string, string[]> = raw ? JSON.parse(raw) : {};
     data[todayKey()] = Array.from(ids);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const uid = getCurrentUid();
+    if (uid) fsSaveHerbChecks(uid, data).catch(console.error);
   } catch {
     // silent
   }

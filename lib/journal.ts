@@ -1,4 +1,6 @@
 import type { CyclePhase, ProgramPhase } from './types';
+import { getCurrentUid } from './uid';
+import { fsSaveJournalEntries } from './firestore';
 
 export interface JournalEntry {
   id: string;
@@ -80,11 +82,15 @@ export function saveEntry(entry: JournalEntry): JournalEntry[] {
   const entries = loadEntries();
   entries.unshift(entry);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  const uid = getCurrentUid();
+  if (uid) fsSaveJournalEntries(uid, entries).catch(console.error);
   return entries;
 }
 
 export function deleteEntry(id: string): JournalEntry[] {
   const entries = loadEntries().filter(e => e.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  const uid = getCurrentUid();
+  if (uid) fsSaveJournalEntries(uid, entries).catch(console.error);
   return entries;
 }

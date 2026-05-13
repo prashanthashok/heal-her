@@ -1,3 +1,6 @@
+import { getCurrentUid } from './uid';
+import { fsSaveChecklist } from './firestore';
+
 export type ChecklistSection = 'morning' | 'daytime' | 'evening';
 
 export interface ChecklistItem {
@@ -58,6 +61,8 @@ export function saveCompletedIds(ids: Set<string>): void {
     const data: Record<string, string[]> = raw ? JSON.parse(raw) : {};
     data[todayKey()] = Array.from(ids);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const uid = getCurrentUid();
+    if (uid) fsSaveChecklist(uid, data).catch(console.error);
   } catch {
     // localStorage unavailable — silently skip
   }
