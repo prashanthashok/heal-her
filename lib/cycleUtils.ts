@@ -6,8 +6,8 @@ export function getCycleDay(lastPeriodDate: string): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diffDays = Math.floor((today.getTime() - last.getTime()) / 86_400_000);
-  // Cycle day 1 = first day of period; assume 28-day cycle
-  return (diffDays % 28) + 1;
+  // Use double-modulo to guard against negative diffDays (future date entered via Settings)
+  return ((diffDays % 28) + 28) % 28 + 1;
 }
 
 export function getCyclePhase(cycleDay: number): CyclePhase {
@@ -68,7 +68,7 @@ export function getProgramDay(startDate: string): number {
   start.setHours(0, 0, 0, 0);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  return Math.min(90, Math.floor((today.getTime() - start.getTime()) / 86_400_000) + 1);
+  return Math.max(1, Math.min(90, Math.floor((today.getTime() - start.getTime()) / 86_400_000) + 1));
 }
 
 export const DOSHA_META: Record<Dosha, {

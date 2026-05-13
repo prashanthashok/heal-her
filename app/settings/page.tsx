@@ -151,7 +151,7 @@ export default function SettingsPage() {
                 <span className="text-lg">{doshaMeta.emoji}</span>
                 <div>
                   <p className="text-sm font-semibold text-charcoal capitalize">{profile.dosha}</p>
-                  <p className="text-[11px] text-charcoal/45">{doshaMeta.description}</p>
+                  <p className="text-[11px] text-charcoal/45">{doshaMeta.tagline}</p>
                 </div>
                 <span className="ml-auto text-[10px] text-charcoal/30 font-medium">
                   Re-take quiz after clearing data
