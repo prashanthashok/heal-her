@@ -32,41 +32,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [redirectError, setRedirectError] = useState('');
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
+    // Consume any pending redirect result; errors surface to the login page.
+    // With the /__/auth/* same-origin proxy in next.config.js, this should
+    // now reliably resolve the user on return from Google OAuth.
+    getSignInRedirectResult().catch((err: { code?: string }) => {
+      const code = err?.code;
+      if (code && code !== 'auth/missing-initial-state') {
+        setRedirectError('Sign in failed. Please try again.');
+      }
+    });
 
-    async function init() {
-      // IMPORTANT: await the redirect result BEFORE subscribing to onAuthStateChanged.
-      // If we subscribe first, Firebase fires onAuthStateChanged(null) while still
-      // processing the redirect — loading flips false, AppShell sees no user, and
-      // redirects back to /login, which breaks the redirect state (infinite loop).
-      try {
-        await getSignInRedirectResult();
-      } catch (err: unknown) {
-        const code = (err as { code?: string })?.code;
-        if (code && code !== 'auth/missing-initial-state') {
-          setRedirectError('Sign in failed. Please try again.');
+    // Auth state listener — fires once Firebase has processed the redirect.
+    const unsubscribe = onAuthChange(async (u) => {
+      setCurrentUid(u?.uid ?? null);
+      if (u) {
+        const hasCloudData = await hydrateFromFirestore(u.uid);
+        if (!hasCloudData) {
+          const hasLocalData = !!localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
+          if (hasLocalData) await pushToFirestore(u.uid);
         }
       }
+      setUser(u);
+      setLoading(false);
+    });
 
-      // By the time we subscribe here, Firebase has finished processing the
-      // redirect and onAuthStateChanged delivers the correct signed-in state.
-      unsubscribe = onAuthChange(async (u) => {
-        setCurrentUid(u?.uid ?? null);
-        if (u) {
-          const hasCloudData = await hydrateFromFirestore(u.uid);
-          if (!hasCloudData) {
-            // Completed onboarding locally before signing in — auto-upload
-            const hasLocalData = !!localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-            if (hasLocalData) await pushToFirestore(u.uid);
-          }
-        }
-        setUser(u);
-        setLoading(false);
-      });
-    }
-
-    init();
-    return () => unsubscribe?.();
+    return unsubscribe;
   }, []);
 
   return (
